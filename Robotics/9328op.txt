@@ -1,0 +1,143 @@
+package com.qualcomm.ftcrobotcontroller.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+
+public class robOp extends OpMode {
+
+    final static double TURRET_MIN_RANGE = 0.0;
+    final static double TURRET_MAX_RANGE = 1.0;
+    final static double BASE_MIN_RANGE = 0.0;
+    final static double BASE_MAX_RANGE = 1.0;
+    final static double JOINT_MIN_RANGE = 0.0;
+    final static double JOINT_MAX_RANGE = 1.0;
+    final static double CLAW_MIN_RANGE = 0.0;
+    final static double CLAW_MAX_RANGE = 1.0;
+    
+    double turretPosition;
+    double basePosition;
+    double jointPosition;
+    double clawPosition;
+    
+    double turretDelta = 0.1;
+    double baseDelta = 0.1;
+    double jointDelta = 0.1;
+    double jointSmallDelta = 0.5;
+    double clawDelta = 0.1;
+    
+    DcMotor motorRight;
+    DcMotor motorLeft;
+    Servo turret;
+    Servo base;
+    Servo joint;
+    Servo claw;
+    
+    public robOp() {
+        
+    }
+
+    @Override
+    public void init() {
+        motorLeft = hardwareMap.dcMotor.get("motor_1");
+        motorRight = hardwareMap.dcMotor.get("motor_2");
+        
+        turret = hardwareMap.servo.get("servo_1");
+        base = hardwareMap.servo.get("servo_2");
+        joint = hardwareMap.servo.get("servo_3");
+        claw = hardwareMap.servo.get("servo_4");
+        
+        turretPosition = 0.5;
+        basePosition = 0.5;
+        jointPosition = 0.5;
+        clawPosition = 0.5;   
+        
+    }
+
+    @Override
+    public void loop() {
+        
+        float left = -gamepad1.left_stick_y;
+        float right = -gamepade1.right_stick_y;
+        
+        left = Range.clip(left, -1, 1);
+        right = Range.clip(right, -1, 1);
+        
+        left = (float)scaleInput(left);
+        right = (float)scaleInput(right);
+        
+        motorRight.setPower(right);
+        motorLeft.setPower(left);
+        
+        if (gamepad2.x) {
+            turretPosition -= turretDelta;
+        }
+        if (gamepad2.b) {
+            turretPosition += turretDelta;
+        }
+        if (gamepad2.a) {
+            clawPosition += clawDelta;
+        }
+        if (gamepad2.y) {
+            clawPosition -= clawDelta;
+        }
+        if (gamepad2.left_bumper) {
+            basePosition -= baseDelta;
+        }
+        if (gamepad2.right_bumper) {
+            basePosition += baseDelta;
+        }
+        if (0.0 < gamepad2.left_trigger < 0.5) {
+            jointPosition -= jointSmallDelta;
+        }
+        if (0.0 < gamepad2.right_trigger < 0.5) {
+            jointPosition += jointSmallDelta;
+        }
+        if (0.5 < gamepad2.left_trigger < 1.0) {
+            jointPosition -= jointDelta;
+        }
+        if (0.5 < gamepad2.right_trigger < 1.0) {
+            jointPosition += jointDelta;
+        }
+        
+        turretPosition = Range.clip(turretPosition, TURRET_MIN_RANGE, TURRET_MAX_RANGE);
+        basePosition = Range.clip(basePosition, BASE_MIN_RANGE, BASE_MAX_RANGE);
+        jointPosition = Range.clip(jointPosition, JOINT_MIN_RANGE, JOINT_MAX_RANGE);
+        clawPosition = Range.clip(clawPosition, CLAW_MIN_RANGE, CLAW_MAX_RANGE);
+        
+        telemetry.addData("Text", "**Robot Data**");
+        telemetry.addData("left tgt pwr", "left pwr: " +String.format("%.2f", left));
+        telemetry.addData("right tgt pwr", "right pwr: " + String.format("%.2f", right));
+        telemetry.addData("turret", "turret: " + String.format("%.2f", turretPosition));
+        telemetry.addData("base", "base: " + String.format("%.2f"", basePosition));
+        telemetry.addData("joint", "joint: " + String.format("%.2f"", jointPosition));
+        telemetry.addData("claw", "claw: " + String.format("%.2f"", clawPosition));
+         
+    }
+
+    @Override
+    public void stop() {
+        
+    }
+
+	double scaleInput(double dVal)  {
+		double[] scaleArray = { 0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
+				0.30, 0.36, 0.43, 0.50, 0.60, 0.72, 0.85, 1.00, 1.00 };
+		int index = (int) (dVal * 16.0);
+		if (index < 0) {
+			index = -index;
+		}
+		if (index > 16) {
+			index = 16;
+		}
+		double dScale = 0.0;
+		if (dVal < 0) {
+			dScale = -scaleArray[index];
+		} else {
+			dScale = scaleArray[index];
+		}
+		return dScale;
+	}
+
+}

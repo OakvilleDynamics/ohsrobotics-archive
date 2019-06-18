@@ -1,0 +1,91 @@
+package com.qualcomm.ftcrobotcontroller.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+public class autoOp extends OpMode {
+    
+    final static double MOTOR_POWER = 0.1;
+    
+    double turretPosition;
+    double basePosition;
+    double jointPosition;
+    double clawPosition;
+    
+    DcMotor motorLeft;
+    DcMotor motorRight;
+    Servo turret;
+    Servo base;
+    Servo joint;
+    Servo claw;
+    
+    public autoOp() {
+        
+    }
+    
+    @Override
+    public void init() {
+        
+        motorLeft = hardwareMap.dcMotor.get("motor_1");
+        motorRight = hardwareMap.dcMotor.get("motor_2");
+        motorRight.setDirection(DcMotor.Direction.REVERSE);
+        
+        turret = hardwareMap.servo.get("servo_1");
+        base = hardwareMap.servo.get("servo_2");
+        joint = hardwareMap.servo.get("servo_3");
+        claw = hardwareMap.servo.get("servo_4");
+        
+        turretPosition = 0.5;
+        basePosition = 0.5;
+        jointPosition = 0.5;
+        clawPosition - 0.5;
+        
+    }
+
+    @Override
+    public void loop() {
+        
+        double left, right = 0.0;
+        
+        turret.setPosition(turretPosition);
+        base.setPosition(basePosition);
+        joint.setPosition(jointPosition);
+        claw.setPosition(clawPosition);
+        
+        if (this.time <= 5) {
+            left = 0.5;
+            right = 0.5;
+        } else if (this.time > 5 && this.time <= 10) {
+            left = 0.15;
+            right = 0.15;
+        } else if (this.time > 10 && this.time <= 12) {
+            left = 0.0;
+            right = 0.0;
+        } else if (this.time > 12 && this.time <= 15) {
+            left = -0.15;
+            right = 0.15;
+        } else if (this.time > 15 && this.time <= 20) {
+            left = 0.5;
+            right = 0.5;
+        } else {
+            left = 0.0;
+            right = 0.0;
+        }
+        
+        motorLeft.setPower(right);
+        motorRight.setPower(left);
+        
+        telemetry.addData("text", "**Robot Data**");
+        telemetry.addData("time", "elapsed time: " + Double.toString(this.time));
+        telemetry.addData("left tgt pwr", "left pwr: " + Double.toString(left));
+        telemetry.addData("right tgt pwr", "right pwr: " + Double.toString(right));
+        
+    }
+    
+    @Override
+    public void stop() {
+        
+    }
+
+}

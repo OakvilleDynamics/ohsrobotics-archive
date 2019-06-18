@@ -1,0 +1,132 @@
+\package com.qualcomm.ftcrobotcontroller.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+public class autoOp extends OpMode {
+    
+    final static double MOTOR_POWER = 0.1;
+    
+
+    
+    DcMotor motorLeft;
+    DcMotor motorRight;
+    Servo turret;
+    Servo base;
+    Servo joint;
+    Servo claw;
+    
+    public autoOp() {
+        
+    }
+    
+    @Override
+    public void init() {
+        
+        motorLeft = hardwareMap.dcMotor.get("motor_1");
+        motorRight = hardwareMap.dcMotor.get("motor_2");
+        motorRight.setDirection(DcMotor.Direction.REVERSE);
+        
+        turret = hardwareMap.servo.get("servo_1");
+        base = hardwareMap.servo.get("servo_2");
+        joint = hardwareMap.servo.get("servo_3");
+        claw = hardwareMap.servo.get("servo_4");
+        
+        turretPosition = 0.5;
+        basePosition = 0.5;
+        jointPosition = 0.5;
+        clawPosition = 0.5;
+        
+		armRight.setPosition(jointPosition);
+		armLeft.setPosition(180-jointPosition);
+        claw.setPosition(clawPosition);
+		
+		double left, right = 0.0;
+		
+		doneRun = False
+		while doneRun == False {
+			if (this.time <= 1) {
+				left = 0.15;
+				right = 0.15;
+			} else if (this.time > 5 && this.time <= 8) {
+				left = 0.0;
+				right = 0.0;
+			} else if (this.time >8 && this.time <= 12) {
+				left = 0.15;
+				right = -0.15;
+			} else if (this.time > 12 && this.time <=20) {
+				left = 0.5;
+				right = 0.5;
+			} else if (this.time > 20 && this.time <=22) {
+				left = 0.0;
+				right = 0.0;
+				armRightPosition = 120;
+				armLeftPostition = 60;		
+			}else if (this.time > 22 && this.time <= 23) {
+				clawPosition = 180
+				doneRun = True
+			} else {
+				left = 0.0;
+				right = 0.0;
+			}
+        }
+		
+        motorLeft.setPower(right);
+        motorRight.setPower(left);
+        
+    }
+
+    @Override
+    public void loop() {
+
+        float left = -gamepad1.left_stick_y;
+        float right = -gamepad1.right_stick_y;
+		float pushArm = -gamepad2.right_stick_y;
+		float pullArm = -gamepad2.left_stick_y;
+		
+		right = Range.clip(right, -1, 1);
+		left = Range.clip(left, -1, 1);
+		pushArm = Range.clip(pushArm, -1, 1);
+		pullArm = Range.clip(pullArm, -1, 1);
+		
+		right = (float)scaleInput(right);
+		left =  (float)scaleInput(left);
+		pushArm = (float)scaleInput(pushArm);
+		pullArm = (float)scaleInput(pullArm);
+		
+		motorRight.setPower(right);
+		motorLeft.setPower(left);
+		motorArmPush.setPower(pushArm);
+		morotArmPull.setPower(pullArm);
+
+		if (gamepad1.a) {
+			armPositionRight += armDelta;
+			armPositionLeft -= armDelta;
+		}
+
+		if (gamepad1.y) {
+			// if the Y button is pushed on gamepad1, decrease the position of
+			// the arm servo.
+			armPositionRight -= armDelta;
+			armPositionLeft += armDelta;
+		}
+
+		armRightPosition = Range.clip(armPositionRight, ARM_MIN_RANGE, ARM_MAX_RANGE);
+		armLeftPosition = Range.clip(armPositionLeft, ARM_MIN_RANGE, ARM_MAX_RANGE);
+		clawPosition = Range.clip(clawPosition, CLAW_MIN_RANGE, CLAW_MAX_RANGE);
+		armRight.setPosition(armRightPosition);
+		armLeft.setPosition(armLeftPosition);
+		claw.setPosition(clawPosition);
+
+		telemetry.addData("Text", "*** Robot Data***");
+		telemetry.addData("left tgt pwr",  "left  pwr: " + String.format("%.2f", left));
+		telemetry.addData("right tgt pwr", "right pwr: " + String.format("%.2f", right));
+	}
+    
+    @Override
+    public void stop() {
+        
+    }
+
+}

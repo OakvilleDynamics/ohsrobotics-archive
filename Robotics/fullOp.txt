@@ -1,0 +1,163 @@
+package com.qualcomm.ftcrobotcontroller.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+
+public class fullOp extends OpMode {
+    
+    final static double BASELEFT_MIN_RANGE = 0.0;
+    final static double BASELEFT_MAX_RANGE = 0.85;
+    final static double BASERIGHT_MIN_RANGE = 0.15;
+    final static double BASERIGHT_MAX_RANGE = 1.0;
+    final static double BASELEFTIN_MIN_RANGE = 0.0;
+    final static double BASELEFTIN_MAX_RANGE = 1.0;
+    final static double BASERIGHTIN_MIN_RANGE = 0.0;
+    final static double BASERIGHTIN_MAX_RANGE = 1.0;
+    final static double JOINTLEFT_MIN_RANGE = 0.0;
+    final static double JOINTLEFT_MAX_RANGE = 1.0;
+    final static double JOINTRIGHT_MIN_RANGE = 0.0;
+    final static double JOINTRIGHT_MAX_RANGE = 1.0;
+    
+    double baseLeftPosition;
+    double baseRightPosition;
+    double baseLeftInPosition;
+    double baseRightInPosition;
+    double jointLeftPosition;
+    double jointRightPosition;
+    
+    double baseDelta = 0.01;
+    double jointDelta = 0.1;
+    
+    DcMotor motorLeft;
+    DcMotor motorRight;
+    Servo baseLeft;
+    Servo baseRight;
+    Servo baseLeftIn;
+    Servo baseRightIn;
+    Servo jointLeft;
+    Servo jointRight;
+    
+    public fullOp() {
+        
+    }
+    
+    @Override
+    public void init() {
+        
+        motorLeft = hardwareMap.dcMotor.get("motor_1");
+        motorRight = hardwareMap.dcMotor.get("motor_2");
+        motorRight.setDirection(DcMotor.Direction.REVERSE);
+        
+        baseLeft = hardwaremap.servo.get("servo_1");
+        baseRight = hardwaremap.servo.get("servo_2");
+        baseLeftIn = hardwaremap.servo.get("servo_3");
+        baseRightIn = hardwaremap.servo.get("servo_4");
+        jointLeft = hardwaremap.servo.get("servo_5");
+        jointRight = hardwaremap.servo.get("servo_6");
+        baseRight.setDirection(Servo.Direction.REVERSE);
+        baseRightIn.setDirection(Servo.Direction.REVERSE);
+        jointRight.setDirection(Servo.Direction.REVERSE);
+     
+///Must test baseIn and joint positions     
+        baseLeftPosition = 0.0;
+        baseRightPosition = 0.15;
+        baseLeftInPosition = 0.0;
+        baseRightInPosition = 0.0;
+        jointLeftPosition = 0.0;
+        jointRightPosition = 0.0;
+        
+    }
+    
+    @Override
+    public void loop() {
+        float left = -gamepad1.left_stick_y;
+        float right = -gamepad1.right_stick_y;
+        
+        left = Range.clip(left, -1, 1);
+        right = Range.clip(right, -1, 1);
+        
+        left = (float)scaleInput(left);
+        right = (float)scaleInput(right);
+        
+        motorLeft.setPower(left);
+        motorRight.setPower(right);
+        
+        if (gamepad1.left_trigger > 0.5) {
+            baseLeftPosition += baseDelta;
+            baseRightPosition += baseDelta;
+            baseLeftInPosition += baseDelta;
+            baseRightInPosition += baseDetla;
+        }
+		if (gamepad1.right_trigger > 0.5) {
+            baseLeftPosition -= baseDelta;
+            baseRightPosition -= baseDelta;
+            baseLeftInPosition -= baseDelta;
+            baseRightInPosition -= baseDetla;
+        }
+        if (gamepad1.left_bumper) {
+            jointLeftPosition += jointDelta;
+            jointRightPosition += jointDelta;
+        }
+        if (gamepad1.right_bumper) {
+            jointLeftPosition -= jointDelta;
+            jointRightPosition -= jointDelta;
+        }
+
+        baseLeft = Range.clip(baseLeftPosition, BASELEFT_MIN_RANGE, BASELEFT_MAX_RANGE);
+        baseRight = Range.clip(baseRightPosition, BASERIGHT_MIN_RANGE, BASERIGHT_MAX_RANGE);
+        baseLeftIn = Range.clip(baseLeftInPosition, BASELEFTIN_MIN_RANGE, BASELEFTIN_MAX_RANGE);
+        baseRightIn = Range.clip(baseRightInPosition, BASERIGHTIN_MIN_RANGE, BASERIGHTIN_MAX_RANGE);
+        jointLeft = Range.clip(jointLeftPosition, JOINTLEFT_MIN_RANGE, JOINTLEFT_MAX_RANGE);
+        jointRight = Range.clip(jointRightPosition, JOINTRIGHT_MIN_RANGE, JOINTRIGHT_MAX_RANGE);
+        
+        baseLeft.setPosition(baseLeftPosition);
+        baseRight.setPosition(baseRightPosition);
+        baseLeftIn.setPosition(baseLeftInPosition);
+        baseRightIn.setPosition(baseRightInPosition);
+        jointLeft.setPosition(jointLeftPosition);
+        jointRight.setPosition(jointRightPosition);
+        
+        telemetry.addData("Text", "*Robot Data*");
+        telemtery.addData("left tgt pwr", "left pwr: " + String.format("%.2f", left));
+        telemtery.addData("right tgt pwr", "right pwr: " + String.format("%.2f", right));
+        telemtery.addData("baseLeft", "baseLeft: " + String.format("%.2f", baseLeftPosition));
+        telemtery.addData("baseRight", "baseRight: " + String.format("%.2f", baseRightPosition);
+        telemtery.addData("baseLeftIn", "baseLeftIn: " + String.format("%.2f", baseLeftInPosition);
+        telemtery.addData("baseRightIn", "baseRightIn: " + String.format("%.2f", baseRightInPosition);
+        telemtery.addData("jointLeft", "jointLeft: " + String.format("%.2f", jointLeftPosition);
+        telemtery.addData("jointRight", "jointRight: " + String.format("%.2f", jointRightPosition);
+        
+    }
+    
+    @Override
+    public void stop() {
+        
+    }
+    
+    	double scaleInput(double dVal)  {
+		double[] scaleArray = { 0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
+				0.30, 0.36, 0.43, 0.50, 0.60, 0.72, 0.85, 1.00, 1.00 };
+
+		int index = (int) (dVal * 16.0);
+
+		if (index < 0) {
+			index = -index;
+		}
+
+		if (index > 16) {
+			index = 16;
+		}
+
+		double dScale = 0.0;
+		if (dVal < 0) {
+			dScale = -scaleArray[index];
+		} else {
+			dScale = scaleArray[index];
+		}
+
+		return dScale;
+	}
+    
+}

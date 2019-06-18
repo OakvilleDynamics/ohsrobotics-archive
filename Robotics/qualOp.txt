@@ -1,0 +1,176 @@
+///Import Stuff
+package com.qualcomm.ftcrobotcontroller.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+
+///The start of the opMode
+public class qualOp extends OpMode {
+
+    ///State MIN and MAX ranges for servos
+    final static double BASELEFT_MIN_RANGE = 0.0;
+    final static double BASELEFT_MAX_RANGE = 1.0;
+    final static double JOINTLEFT_MIN_RANGE = 0.0;
+    final static double JOINTLEFT_MAX_RANGE = 1.0;
+    final static double CLAWLEFT_MIN_RANGE = 0.0;
+    final static double CLAWLEFT_MAX_RANGE = 1.0;
+    final static double BASERIGHT_MIN_RANGE = 0.0;
+    final static double BASERIGHT_MAX_RANGE = 1.0;
+    final static double JOINTRIGHT_MIN_RANGE = 0.0;
+    final static double JOINTRIGHT_MAX_RANGE = 1.0;
+    final static double CLAWRIGHT_MIN_RANGE = 0.0;
+    final static double CLAWRIGHT_MAX_RANGE = 1.0;
+
+    ////Declare the positions of the servos as variables
+    double baseLeftPosition;
+    double jointLeftPosition;
+    double clawLeftPosition;
+    double baseRightPosition;
+    double jointRightPosition;
+    double clawRightPosition;
+
+    ////Set the incriment the servos will change positions by
+    double baseDelta = 0.1;
+    double jointDelta = 0.05;
+    double clawDelta = 0.1;
+
+    ////Stating what each part is
+    DcMotor motorLeft;
+    DcMotor motorRight;
+    Servo baseLeft;
+    Servo jointLeft;
+    Servo clawLeft;
+    Servo baseRight;
+    Servo jointRight;
+    Servo clawRight;
+
+    ////Constructor
+    public qualOp() {
+
+    }
+
+    ////Code to run when the opMode initializes
+    @Override
+    public void start() {
+
+    ////Maps the hardware on the robot
+        motorLeft = hardwareMap.dcMotor.get("motor_1");
+        motorRight = hardwareMap.dcMotor.get("motor_2");
+
+        baseLeft = hardwareMap.servo.get("servo_1");
+        jointLeft = hardwareMap.servo.get("servo_2");
+        clawLeft = hardwareMap.servo.get("servo_3");
+        baseRight = hardwareMap.servo.get("servo_4");
+        jointRight = hardwareMap.servo.get("servo_5");
+        clawRight = hardwareMap.servo.get("servo_6");
+
+    }
+
+    ////Code that loops while the opMode is active
+    @Override
+    public void loop() {
+
+    ////Set the left and right stick input values as floats, so the motors can be controlled more accurately
+        float left = -gamepad1.left_stick_y;
+        float right = -gamepad1.right_stick_y;
+
+    ////Clips the range of the motor inputs to (-1 , 1)
+        left = Range.clip(left, -1, 1);
+        right = Range.clip(right, -1, 1);
+
+    ////Tells the robot what to do with controller input
+        if (gamepad2.left_bumper) {
+            baseLeftPosition += baseDelta;
+        }
+        if (gamepad2.left_trigger > 0.1) {
+            baseLeftPosition -= baseDelta;
+        }
+        if (gamepad2.right_bumper) {
+            baseRightPosition += baseDelta;
+        }
+        if (gamepad2.right_trigger > 0.1) {
+            baseRightPosition -= baseDelta;
+        }
+        if (gamepad2.left_stick_y > 0.1) {
+            jointLeftPosition += jointDelta;
+        }
+        if (gamepad2.left_stick_y < -0.1) {
+            jointLeftPosition -= jointDelta;
+        }
+        if (gamepad2.right_stick_y > 0.1) {
+            jointRightPosition += jointDelta;
+        }
+        if (gamepad2.right_stick_y < -0.1) {
+            jointRightPosition -= jointDelta;
+        }
+        if (gamepad2.x) {
+            clawLeftPosition -= clawDelta;
+        }
+        if (gamepad2.y) {
+            clawLeftPosition += clawDelta;
+        }
+        if (gamepad2.a) {
+            clawRightPosition -= clawDelta;
+        }
+        if (gamepad2.b) {
+            clawRightPosition += clawDelta;
+        }
+
+    ////Clips the movement of the servos to the MIN and MAX ranges
+        baseLeftPosition = Range.clip(baseLeftPosition, BASELEFT_MIN_RANGE, BASELEFT_MAX_RANGE);
+        jointLeftPosition = Range.clip(jointLeftPosition, JOINTLEFT_MIN_RANGE, JOINTLEFT_MAX_RANGE);
+        clawLeftPosition = Range.clip(clawLeftPosition, CLAWLEFT_MIN_RANGE, CLAWLEFT_MAX_RANGE);
+        baseRightPosition = Range.clip(baseRightPosition, BASERIGHT_MIN_RANGE, BASERIGHT_MAX_RANGE);
+        jointRightPosition = Range.clip(jointRightPosition, JOINTRIGHT_MIN_RANGE, JOINTRIGHT_MAX_RANGE);
+        clawRightPosition = Range.clip(clawRightPosition, CLAWRIGHT_MIN_RANGE, CLAWRIGHT_MAX_RANGE);
+
+    ////Actually moves the servo to its Position variable
+        baseLeft.setPosition(baseLeftPosition);
+        jointLeft.setPosition(jointLeftPosition);
+        clawLeft.setPosition(clawLeftPosition);
+        baseRight.setPosition(baseRightPosition);
+        jointRight.setPosition(jointRightPosition);
+        clawRight.setPosition(clawRightPosition);
+
+    ////Information that the robotDriver phone prints
+        telemetry.addData("Text", "**Robot Data**");
+        telemetry.addData("left tgt pwr",  "left  pwr: " + String.format("%.2f", left));
+        telemetry.addData("right tgt pwr", "right pwr: " + String.format("%.2f", right));
+        telemetry.addData("baseLeft", "baseLeft: " + String.format("%.2f", baseLeftPosition));
+        telemetry.addData("jointLeft", "jointLeft: " + String.format("%.2f", jointLeftPosition));
+        telemetry.addData("clawLeft", "clawLeft: " + String.format("%.2f", clawLeftPosition));
+        telemetry.addData("baseRight", "baseRight: " + String.format("%.2f", baseRightPosition));
+        telemetry.addData("jointRight", "jointRight: " + String.format("%.2f", jointRightPosition));
+        telemetry.addData("clawRight", "clawRight: " + String.format("%.2f", clawRightPosition));
+
+    }
+
+    ////Code that is run when the opMode ends
+    @Override
+    public void stop() {
+
+    }
+
+    ////Sets a scale input for the floats, allowing more precise control over the motor speeds
+    double scaleInput(double dVal) {
+        double[] scaleArray = {0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
+                0.30, 0.36, 0.43, 0.50, 0.60, 0.72, 0.85, 1.00, 1.00};
+        int index = (int) (dVal * 16.0);
+        if (index < 0) {
+            index = -index;
+        }
+        if (index > 16) {
+            index = 16;
+        }
+        double dScale = 0.0;
+        if (dVal < 0) {
+            dScale = -scaleArray[index];
+        } else {
+            dScale = scaleArray[index];
+        }
+        return dScale;
+    }
+
+}
